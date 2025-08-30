@@ -3,67 +3,115 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trawise - Investment App</title>
+  <title>Trawise - Dashboard</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f7fa; margin: 0; padding: 0; }
-    header { background: #0D1B2A; color: white; text-align: center; padding: 15px; }
-    .container { max-width: 400px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    input, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
-    button { background: #1B263B; color: white; border: none; cursor: pointer; }
-    button:hover { background: #415A77; }
-    #dashboard { display: none; }
-    .plan { border: 1px solid #ddd; padding: 12px; border-radius: 6px; margin: 8px 0; }
-    .plan h3 { margin: 0; }
+    body {
+      margin: 0; font-family: Arial, sans-serif; background: #f4f7fb;
+    }
+    header {
+      background: #2d3e50; color: white; padding: 15px; text-align: center;
+      font-size: 22px; font-weight: bold;
+    }
+    .container {
+      display: flex; min-height: 100vh;
+    }
+    .sidebar {
+      width: 220px; background: #34495e; color: white; padding: 20px;
+    }
+    .sidebar h2 { margin-top: 0; }
+    .sidebar button {
+      display: block; width: 100%; padding: 10px; margin: 10px 0;
+      background: #2ecc71; color: white; border: none; cursor: pointer;
+    }
+    .sidebar button.logout {
+      background: #e74c3c;
+    }
+    .main {
+      flex: 1; padding: 30px;
+    }
+    .card {
+      background: white; padding: 20px; margin: 10px 0;
+      border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .plans button {
+      background: #3498db; border: none; padding: 10px 20px;
+      margin: 10px; color: white; border-radius: 5px; cursor: pointer;
+    }
+    /* Payment Modal */
+    #paymentModal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: white; padding: 20px; border-radius: 8px; width: 400px;
+    }
+    .modal-content h2 { margin-top: 0; }
+    .modal-content button {
+      width: 100%; padding: 12px; margin-top: 10px; border: none;
+      border-radius: 5px; cursor: pointer;
+    }
+    .razor-btn { background: #2ecc71; color: white; }
+    .usdt-btn { background: #f39c12; color: white; }
+    .close-btn { background: #e74c3c; color: white; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>🚀 Trawise</h1>
-    <p>Trade Smartly and Grow Wisely</p>
-  </header>
+  <header>💹 Trawise Dashboard</header>
+  <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>Menu</h2>
+      <button onclick="showSection('dashboard')">🏠 Dashboard</button>
+      <button onclick="showSection('plans')">📈 Invest Plans</button>
+      <button class="logout" onclick="logout()">🚪 Logout</button>
+    </div>
 
-  <!-- Login / Signup -->
-  <div class="container" id="authSection">
-    <h2>Login / Signup</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="signUp()">Sign Up</button>
-    <button onclick="login()">Login</button>
+    <!-- Main Content -->
+    <div class="main">
+      <!-- Dashboard Section -->
+      <div id="dashboard" class="section">
+        <h2>Welcome to Trawise</h2>
+        <div class="card">
+          <h3>Current Plan: <span id="plan">None</span></h3>
+          <h3>Balance: ₹<span id="balance">0</span></h3>
+          <h3>Status: <span id="status">Not Invested</span></h3>
+        </div>
+      </div>
+
+      <!-- Plans Section -->
+      <div id="plans" class="section" style="display:none;">
+        <h2>Choose Your Plan</h2>
+        <div class="plans">
+          <button onclick="openPayment(5000)">Invest ₹5000</button>
+          <button onclick="openPayment(10000)">Invest ₹10000</button>
+          <button onclick="openPayment(20000)">Invest ₹20000</button>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Dashboard -->
-  <div class="container" id="dashboard">
-    <h2>Welcome, <span id="userEmail"></span></h2>
-    <p><b>Your Investment Plan:</b> <span id="plan">Not Invested</span></p>
-    <p><b>Total Balance:</b> ₹<span id="balance">0</span></p>
-
-    <h3>💰 Choose a Plan</h3>
-    <div class="plan">
-      <h3>₹5000 Plan</h3>
-      <p>5% Monthly Return</p>
-      <button onclick="invest(5000)">Invest Now</button>
+  <!-- Payment Modal -->
+  <div id="paymentModal">
+    <div class="modal-content">
+      <h2>Select Payment Method</h2>
+      <button class="razor-btn" onclick="payWithRazorpay()">💳 Pay with UPI / Card</button>
+      <h3>Or Pay with USDT (TRC20)</h3>
+      <p>Send USDT to:</p>
+      <code id="usdtAddress">TRc1234YourTRC20WalletAddress</code>
+      <p>Enter Transaction ID:</p>
+      <input type="text" id="usdtTx" placeholder="TxID" style="width:100%; padding:8px;">
+      <button class="usdt-btn" onclick="confirmUSDT()">Confirm USDT Payment</button>
+      <button class="close-btn" onclick="closePayment()">Close</button>
     </div>
-    <div class="plan">
-      <h3>₹10000 Plan</h3>
-      <p>5% Monthly Return</p>
-      <button onclick="invest(10000)">Invest Now</button>
-    </div>
-    <div class="plan">
-      <h3>₹20000 Plan</h3>
-      <p>5% Monthly Return</p>
-      <button onclick="invest(20000)">Invest Now</button>
-    </div>
-
-    <button onclick="logout()">Logout</button>
   </div>
 
   <!-- Firebase SDK -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
-    import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+    // Firebase imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getDatabase, ref, update, get, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyDzxxUj1G9oMVsZgKUKmpIwKz1HCx0y-rE",
       authDomain: "trawise-app.firebaseapp.com",
@@ -75,91 +123,93 @@
       measurementId: "G-V32FC1LX9F"
     };
 
-    // Init
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    // Signup
-    window.signUp = function() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+    let selectedAmount = 0;
 
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          set(ref(db, "users/" + user.uid), {
-            email: email,
-            plan: "Not Invested",
-            balance: 0
-          });
-          alert("Signup Successful ✅");
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
+    // Sidebar Navigation
+    window.showSection = function(section) {
+      document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+      document.getElementById(section).style.display = 'block';
     }
 
-    // Login
-    window.login = function() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          alert("Login Successful ✅");
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
+    // Payment Modal
+    window.openPayment = function(amount) {
+      selectedAmount = amount;
+      document.getElementById("paymentModal").style.display = "flex";
+    }
+    window.closePayment = function() {
+      document.getElementById("paymentModal").style.display = "none";
     }
 
-    // Logout
-    window.logout = function() {
-      signOut(auth).then(() => {
-        document.getElementById("dashboard").style.display = "none";
-        document.getElementById("authSection").style.display = "block";
-      });
+    // Razorpay Payment
+    window.payWithRazorpay = function() {
+      var options = {
+        "key": "rzp_test_yourkey", // Replace with your Razorpay key
+        "amount": selectedAmount * 100,
+        "currency": "INR",
+        "name": "Trawise",
+        "description": "Investment Plan",
+        "handler": function (response){
+          alert("Payment Successful ✅: " + response.razorpay_payment_id);
+          saveInvestment("₹" + selectedAmount, selectedAmount, "Paid");
+          closePayment();
+        }
+      };
+      var rzp1 = new Razorpay(options);
+      rzp1.open();
     }
 
-    // Invest
-    window.invest = function(amount) {
+    // USDT Payment
+    window.confirmUSDT = function() {
+      const txid = document.getElementById("usdtTx").value;
+      if(txid.trim() === "") { alert("Enter TxID first"); return; }
+      alert("USDT Payment Submitted ✅ Pending Verification");
+      saveInvestment("₹" + selectedAmount, selectedAmount, "Pending (USDT)");
+      closePayment();
+    }
+
+    // Save to Firebase
+    function saveInvestment(plan, amount, status) {
       const user = auth.currentUser;
-      if (!user) {
-        alert("Please login first!");
-        return;
-      }
-      const userRef = ref(db, "users/" + user.uid);
-      update(userRef, {
-        plan: "₹" + amount + " Plan",
-        balance: amount
+      if (!user) return;
+      update(ref(db, "users/" + user.uid), {
+        plan: plan,
+        balance: amount,
+        status: status
       }).then(() => {
-        alert("Investment of ₹" + amount + " Successful ✅ (Dummy Payment)");
-        document.getElementById("plan").innerText = "₹" + amount + " Plan";
+        document.getElementById("plan").innerText = plan;
         document.getElementById("balance").innerText = amount;
-      }).catch((error) => {
-        alert(error.message);
+        document.getElementById("status").innerText = status;
       });
     }
 
-    // Auth State
+    // Show user data on login
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        document.getElementById("authSection").style.display = "none";
-        document.getElementById("dashboard").style.display = "block";
-        document.getElementById("userEmail").innerText = user.email;
-
-        const dbRef = ref(db);
-        get(child(dbRef, "users/" + user.uid)).then((snapshot) => {
-          if (snapshot.exists()) {
-            document.getElementById("plan").innerText = snapshot.val().plan;
-            document.getElementById("balance").innerText = snapshot.val().balance;
+        const userRef = ref(db);
+        get(child(userRef, "users/" + user.uid)).then((snapshot) => {
+          if(snapshot.exists()) {
+            const data = snapshot.val();
+            document.getElementById("plan").innerText = data.plan || "None";
+            document.getElementById("balance").innerText = data.balance || "0";
+            document.getElementById("status").innerText = data.status || "Not Invested";
           }
         });
       } else {
-        document.getElementById("authSection").style.display = "block";
-        document.getElementById("dashboard").style.display = "none";
+        window.location.href = "login.html"; // redirect if not logged in
       }
     });
+
+    // Logout
+    window.logout = function() {
+      signOut(auth).then(() => { window.location.href = "login.html"; });
+    }
   </script>
+
+  <!-- Razorpay SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </body>
 </html>
