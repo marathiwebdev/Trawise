@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trawise - Trade Smartly and Grow Wisely</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      margin: 0; padding: 0;
+    }
+    header {
+      background: #0D1B2A;
+      color: white;
+      text-align: center;
+      padding: 15px;
+    }
+    .container {
+      max-width: 400px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    input, button {
+      width: 100%; padding: 10px;
+      margin: 8px 0; border: 1px solid #ccc;
+      border-radius: 5px; font-size: 14px;
+    }
+    button {
+      background: #1B263B; color: white; border: none;
+      cursor: pointer;
+    }
+    button:hover { background: #415A77; }
+    #dashboard { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🚀 Trawise</h1>
+    <p>Trade Smartly and Grow Wisely</p>
+  </header>
+
+  <!-- Login / Signup -->
+  <div class="container" id="authSection">
+    <h2>Login / Signup</h2>
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="signUp()">Sign Up</button>
+    <button onclick="login()">Login</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="container" id="dashboard">
+    <h2>Welcome, <span id="userEmail"></span></h2>
+    <p><b>Your Investment Plan:</b> <span id="plan">Not Invested</span></p>
+    <p><b>Total Balance:</b> ₹<span id="balance">0</span></p>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+
+    // Your Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzxxUj1G9oMVsZgKUKmpIwKz1HCx0y-rE",
+      authDomain: "trawise-app.firebaseapp.com",
+      databaseURL: "https://trawise-app-default-rtdb.firebaseio.com",
+      projectId: "trawise-app",
+      storageBucket: "trawise-app.firebasestorage.app",
+      messagingSenderId: "1075632762742",
+      appId: "1:1075632762742:web:7663e8e1b639c725641457",
+      measurementId: "G-V32FC1LX9F"
+    };
+
+    // Init Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // Signup
+    window.signUp = function() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          // Save default plan & balance in DB
+          set(ref(db, "users/" + user.uid), {
+            email: email,
+            plan: "Not Invested",
+            balance: 0
+          });
+          alert("Signup Successful ✅");
+        })
+        .catch((error) => {
+          alert(error.message);
+        });
+    }
+
+    // Login
+    window.login = function() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          alert("Login Successful ✅");
+        })
+        .catch((error) => {
+          alert(error.message);
+        });
+    }
+
+    // Logout
+    window.logout = function() {
+      signOut(auth).then(() => {
+        document.getElementById("dashboard").style.display = "none";
+        document.getElementById("authSection").style.display = "block";
+      });
+    }
+
+    // Track Auth State
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("authSection").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+        document.getElementById("userEmail").innerText = user.email;
+
+        // Fetch Data from DB
+        const dbRef = ref(db);
+        get(child(dbRef, "users/" + user.uid)).then((snapshot) => {
+          if (snapshot.exists()) {
+            document.getElementById("plan").innerText = snapshot.val().plan;
+            document.getElementById("balance").innerText = snapshot.val().balance;
+          }
+        });
+      } else {
+        document.getElementById("authSection").style.display = "block";
+        document.getElementById("dashboard").style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
